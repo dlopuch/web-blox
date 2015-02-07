@@ -1,11 +1,7 @@
 {
-  "name": "frontend-js-boilerplate",
+  "name": "web-blox",
   "version": "0.0.1",
   "description": "",
-  "main": "index.js",
-  "scripts": {
-    "test": "test"
-  },
   "author": "Dan Lopuch (http://onafloatingrock.com)",
   "license": "GPLv2",
   "devDependencies": {
