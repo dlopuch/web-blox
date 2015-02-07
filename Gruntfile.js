@@ -54,16 +54,44 @@ module.exports = function(grunt) {
 
     copy: {
       // includes files within path and its sub-directories
-      public: {expand: true, cwd: 'src/public/', src: ['**'], dest: 'dist/'},
+      public: {
+        expand: true,
+        cwd: 'src/public/',
+        src: ['**'],
+        dest: 'dist/',
+        filter: function(filepath) {
+          // skip src/public/app -- that gets browserify'd
+          return !filepath.match(/^src\/public\/app/g);
+        }
+      },
 
       bower_libs: {
         expand: true,
         flatten: true,
         filter: 'isFile',
         src: BOWER_JS_LIBS,
-        dest: 'dist/lib/'
+        dest: 'build/bower_libs/'
       },
+
       bootstrap: {expand: true, cwd: 'bower_components/bootstrap/dist/fonts', src: ['**'], dest: 'dist/fonts'},
+    },
+
+    browserify: {
+      app: {
+        src: 'src/public/app/main.js',
+        dest: 'dist/app.js',
+        browserifyOptions: {
+          basedir: 'src/public/app',
+
+          // Makes it so you can require any lib defined in BOWER_JS_LIBS by just doing:
+          //   var _ = require('lodash')
+          // (passed from browserify to https://www.npmjs.com/package/module-deps)
+          paths: 'build/bower_libs',
+
+          // Adds source maps.  TODO: Figure out how to turn off for production builds?
+          debug: true
+        }
+      },
     },
 
     // concatenate all javascript together
@@ -126,6 +154,7 @@ module.exports = function(grunt) {
   });
 
   /* load every plugin in package.json */
+  grunt.loadNpmTasks('grunt-browserify');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-concat');
   grunt.loadNpmTasks('grunt-contrib-copy');
@@ -139,25 +168,22 @@ module.exports = function(grunt) {
   /* grunt tasks */
   grunt.registerTask('start', ['default', 'open']);
   grunt.registerTask('build_libs', [
-    // JS libs
-    'copy:bower_libs',
-    //'uglify:js_libs',
-
-    // CSS etc
+    // CSS, etc
     'concat:css_libs',
-    'copy:bootstrap']);
+    'copy:bootstrap'
+  ]);
 
-  grunt.registerTask('build_js', ['jshint', 'copy:public']);
+  grunt.registerTask('build_js', ['jshint', 'copy:bower_libs', 'browserify:app']);
 
   grunt.registerTask('build', [
     'clean',
     'build_libs',
     'build_js',
+    'copy:public',
     'less:development',
     'express',
     'watch'
   ]);
 
   grunt.registerTask('default', ['build']);
-
 };

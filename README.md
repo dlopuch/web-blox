@@ -1,13 +1,14 @@
 # frontend-js-boilerplate
 
 Boilerplate build system for front-end JS development.  Includes:
+- **Browserify** to write code with CommonJS / Node module style
 - Dependencies brought in locally through Bower
+    - TODO: How well do Bower and Browserify play?  How much clientside lib availability is there in NPM vs. Bower?
 - Local webserver to serve it up
-- Linting with JSHint
-- File watching with live reload
-- LESS compilation
-- Starts with common JS libs: jquery, lodash, and Bootstrap (including Bootstrap CSS)
-- RequireJS to dynamically load modules and dependencies
+- **JSHint** linting
+- File watching with **live reload**
+- **LESS** compilation
+- Starts with common JS libs: jquery, lodash, and **Bootstrap** (including Bootstrap CSS via LESS)
 
 # To Make Something Neat
 
@@ -30,10 +31,9 @@ Gruntfile builds everything and puts it into `dist/`, which is what the webserve
 ## To Add a Bower Dependency
 - `$ bower install somePackage --save`
 - Open up `Gruntfile.js` and add the dist file to be copied over into `BOWER_JS_LIBS`
-- Open up `src/public/main.js` and configure requireJS to recognize the file
+- TODO: Add to Browserify build???
 - Rebuild: `$ grunt build`
 
 # TODOs
-- Distribution packaging: concatenation and minifying via RequireJS packer
 - Automatic bower/requirejs packaging?
 - Add tests
