@@ -6,7 +6,8 @@ module.exports = function(grunt) {
     './bower_components/requirejs/require.js',
     './bower_components/jquery/dist/jquery.js',
     './bower_components/bootstrap/dist/js/bootstrap.js',
-    './bower_components/lodash/dist/lodash.js'
+    './bower_components/lodash/dist/lodash.js',
+    './bower_components/tinycolor/tinycolor.js'
   ];
 
   var DEV_HTTP_PORT = 8000;
@@ -44,7 +45,10 @@ module.exports = function(grunt) {
     // dev-dependency: Lint all JavaScript
     jshint: {
       options: {
-        jshintrc: '.jshintrc'
+        jshintrc: '.jshintrc',
+
+        // TODO: Ignore bower libs, see copy:bower_libs TODO
+        ignores: ['src/public/app/lib/**/*.js']
       },
       files: [
         'Gruntfile.js',
@@ -70,7 +74,10 @@ module.exports = function(grunt) {
         flatten: true,
         filter: 'isFile',
         src: BOWER_JS_LIBS,
-        dest: 'build/bower_libs/'
+
+        // TODO: Put bower files into app folder so can be browserify'd.  Can't figure out how to get aliases to work.
+        //       Note that jshint also ignores these files.
+        dest: 'src/public/app/lib'
       },
 
       bootstrap: {expand: true, cwd: 'bower_components/bootstrap/dist/fonts', src: ['**'], dest: 'dist/fonts'},
@@ -86,9 +93,10 @@ module.exports = function(grunt) {
           // Makes it so you can require any lib defined in BOWER_JS_LIBS by just doing:
           //   var _ = require('lodash')
           // (passed from browserify to https://www.npmjs.com/package/module-deps)
-          paths: 'build/bower_libs',
+          //paths: 'build/bower_libs',
+          // TODO: This should be working but it's not.  Not sure what's going on.
 
-          // Adds source maps.  TODO: Figure out how to turn off for production builds?
+          // Adds source maps.  TODO: Not yet working
           debug: true
         }
       },
