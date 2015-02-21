@@ -149,3 +149,8 @@ window.patterns = {
 //window.patterns.cycleCubeHues();
 //window.patterns.adjacencyCubes();
 window.patterns.paletteify();
+
+
+
+
+var cubeForceLayoutController = require('./controller/cubeForceLayoutController');
