@@ -1,6 +1,15 @@
+/**
+ * This is a pattern that changes each cube to a random color from some palette.  Each cube gets a different random
+ * color every second.  Every color in a palette need not be equally probable -- you can define the probabilities of
+ * each color being selected in a palette.
+ *
+ * Uses Dependency Injection to get cubes and fadeCandyController refs -- see module.exports for what gets exported.
+ */
+var _ = require('lodash');
+
 // List of palettes to randomly select blocks from
-// Format is [0]: probability of selecting the color, [1] is the color string
-var palettes = {
+// Format is [0]: probability of selecting the color (relative to total sum), [1] is the color string
+var PALETTES = {
   // Nature Walk
   // http://www.colourlovers.com/palette/1081510/Nature_Walk?widths=1
   NATURE_WALK: [
@@ -38,8 +47,26 @@ var palettes = {
     [76 , '#5E1349']
   ],
 
+  //http://www.colourlovers.com/palette/580974/Adrift_in_Dreams
+  ADRIFT_IN_DREAMS: [
+    [1, '#F8CA00'], // original: CFF09E'],
+    [1, '#A8DBA8'],
+    [1, '#79BD9A'],
+    [1, '#3B8686'],
+    [1, '#0B486B']
+  ],
+
+  // (◕ ” ◕): http://www.colourlovers.com/palette/848743/(%E2%97%95_%E2%80%9D_%E2%97%95)
+  SUGAR_FACE: [
+    [100, '#490A3D'],
+    [30 , '#BD1550'],
+    [30 , '#E97F02'],
+    [30 , '#F8CA00'],
+    [50 , '#8A9B0F'],
+  ]
 };
 
+// Makes each palette probability a cumulative density number from 0-1 so a random number 0-1 'lands' on some color
 function normalizePaletteProbabilities(palette) {
   var sum = palette.reduce(function(sum, color) { return sum + color[0]; }, 0);
 
@@ -53,8 +80,8 @@ function normalizePaletteProbabilities(palette) {
   return palette;
 }
 
-for (var k in palettes) {
-  palettes[k] = normalizePaletteProbabilities(palettes[k]);
+for (var k in PALETTES) {
+  PALETTES[k] = normalizePaletteProbabilities(PALETTES[k]);
 }
 
 function pickRandomColor(palette) {
@@ -66,19 +93,51 @@ function pickRandomColor(palette) {
   return palette[i][1];
 }
 
+// export DI wrapper
 module.exports = function(cubes, fadeCandyController) {
-  fadeCandyController.pause();
+  var interval;
 
-  function randomCubeColor(cube) {
-    cube.setColor(pickRandomColor(palettes.NATURE_WALK));
-    //cube.setColor(pickRandomColor(palettes.GIANT_GOLDFISH));
-    // cube.setColor(pickRandomColor(palettes.SAN_FRANCISCO));
-    // cube.setColor(pickRandomColor(palettes.FRUITFUL));
+  /**
+   * Main expose method
+   * @param {string | Array} palette name of a palette, or a palette Object literal from PALETTES
+   */
+  function start(palette) {
+    // stop any previous patterns or intervals
+    if (window.stop) {
+      window.stop();
+    }
+    if (interval) {
+      clearInterval(interval);
+      interval = null;
+    }
+
+    // pick a palette
+    if (_.isString(palette))
+      palette = PALETTES[palette];
+    else if (_.isArray(palette))
+      palette = normalizePaletteProbabilities(palette);
+    else // default
+      palette = PALETTES.SUGAR_FACE;
+
+    // Stop the fadecandy from auto-update... we'll send frames manually
+    fadeCandyController.pause();
+
+    window.stop = function() {
+      clearInterval(interval);
+      interval = null;
+      fadeCandyController.go(); // Make it go back to normal when this pattern is stopped
+    };
+
+    interval = setInterval(function() {
+      cubes.forEach(function(cube) {
+        cube.setColor( pickRandomColor(palette) );
+      });
+      fadeCandyController.sendLeds();
+    }, 1000);
   }
-  var interval = setInterval(function() {
-    cubes.forEach(randomCubeColor);
-    fadeCandyController.sendLeds();
-  }, 500);
 
-  window.stop = function() { clearInterval(interval); };
+  return {
+    start: start,
+    PALETTES: PALETTES
+  };
 };

@@ -1,5 +1,6 @@
 var _ = require('lodash'),
-    sculpture = require('./controller/sculptureController');
+    sculpture = require('./controller/sculptureController'),
+    patternPaletteify = require('./pattern_paletteify')(sculpture.cubes, sculpture.fadeCandyController);
 
 window._ = _;
 
@@ -11,18 +12,27 @@ console.log(" - cubes: List of cubes.  Set cube colors like: cubes[4].setColor('
 console.log("     Refer to tinycolor.js for all color strings");
 window.cubes = sculpture.cubes;
 
+console.log(" - tinycolor: tinycolor.js.  Each cube's LED array needs to be one of these.");
+var tinycolor = window.tinycolor = require('./lib/tinycolor');
+
 console.log(' - lattice: The lattice model.  Can be used to grab adjacent cubes, for example (see demo patterns)');
 window.lattice = sculpture.lattice;
 
 console.log(' - fadeCandyController: Change the number of keyframes per second sent out by calling: .go(n)');
-window.fadeCandyController = sculpture.fadeCandyController;
+var fadeCandyController = window.fadeCandyController = sculpture.fadeCandyController;
 
 console.log('\n\nWe also have some demo patterns to try:');
 console.log('--------------------------');
 console.log('  - patterns.cycleCubeHues(): Rotate each cube through the rainbow');
 console.log("  - patterns.adjecencyCubes(): Highlight each cube and it's adjacent cube(s)");
+console.log("  - patterns.flipCubePixels(): Highlights and cycles each individual pixel in all cubes");
+console.log("  - patterns.palleteify(str): Change each cube to a random color.  Try some palette names like " +
+            "'NATURE_WALK', 'GIANT_GOLDFISH', 'SAN_FRANCISCO', 'FRUITFUL', 'ADRIFT_IN_DREAMS', 'SUGAR_FACE', or " +
+            "make your own (see pattern_paletteify.js)");
+console.log('--------------------------');
 console.log('Experiment with fadecandy capabilities -- try calling fadeCandyController.go() with different params to ' +
             'see interpolation at different update frequencies.');
+
 // Some demo patterns to try out in console:
 window.patterns = {
   /**
@@ -98,11 +108,40 @@ window.patterns = {
     window.stop = function() { clearInterval(interval); };
   },
 
-  paletteify: function() {
+  flipCubePixels: function(activeColor, backgroundColor) {
     if (window.stop)
       window.stop();
 
-    require('./pattern_paletteify')(sculpture.cubes, sculpture.fadeCandyController);
+    var cubeI=0;
+
+    fadeCandyController.pause();
+
+    function cycleCubes() {
+      sculpture.cubes.forEach(function(cube) {
+        cube.leds.forEach(function(color, i) {
+          cube.leds[i] = tinycolor(i === cubeI ? activeColor || 'blue' : backgroundColor || '#555');
+        });
+      });
+      fadeCandyController.sendLeds();
+      cubeI = (cubeI + 1) % 4;
+    }
+
+    var interval = setInterval(cycleCubes, 500);
+    window.stop = function() {
+      clearInterval(interval);
+      fadeCandyController.go();
+    };
+  },
+
+  /**
+   * Change each block to a random color
+   * @param {string | Object} paletteName A palette name from pattern_paletteify, or your custom palette array
+   */
+  paletteify: function(paletteName) {
+    if (window.stop)
+      window.stop();
+
+    patternPaletteify.start(paletteName);
   }
 
 };
