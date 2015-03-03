@@ -44,3 +44,16 @@ force.on('tick', function() {
   node.attr("cx", function(d) { return d.x; })
       .attr("cy", function(d) { return d.y; });
 });
+
+var lastPush = Date.now();
+sculpture.fadeCandyController.on('pushed', function(fcc, ledString) {
+
+  node
+  .transition()
+  .duration(Date.now() - lastPush)
+  .style('fill', function(n) {
+    return n.cube.leds[0].toRgbString();
+  });
+
+  lastPush = Date.now();
+});

@@ -1,8 +1,15 @@
 var _ = require('lodash'),
+    eventEmitter = require('event-emitter'),
     DEBUG = false;
 
 var packetCount = 0;
 
+/**
+ * Class to send LEDs off to the fadecandy controller
+ *
+ * Custom Events (listen to with .on or .once):
+ *   "pushed" (this, ledString): Emitted when the controller pushed a packet off to the fadecandy websocket
+ */
 var FadeCandyController = module.exports = function(ledString, options) {
   if (!ledString)
     throw new Error('ledString required!');
@@ -30,6 +37,12 @@ var FadeCandyController = module.exports = function(ledString, options) {
     self._connected = true;
   };
   this.go();
+
+  // Create an event emitter and expose some functions (TODO: proper inheritence)
+  this._eventEmitter = eventEmitter();
+  this.on = this._eventEmitter.on.bind(this._eventEmitter);
+  this.once = this._eventEmitter.once.bind(this._eventEmitter);
+  this.off = this._eventEmitter.off.bind(this._eventEmitter);
 };
 
 /**
@@ -78,4 +91,6 @@ FadeCandyController.prototype.sendLeds = function() {
     packetCount = 0;
     console.log('Latest packet: ', packet);
   }
+
+  this._eventEmitter.emit('pushed', this, this.ledString);
 };

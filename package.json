@@ -19,6 +19,7 @@
     "time-grunt": "^0.4.0"
   },
   "dependencies": {
-    "d3": "^3.5.5"
+    "d3": "^3.5.5",
+    "event-emitter": "^0.3.3"
   }
 }
