@@ -153,4 +153,5 @@ window.patterns.paletteify();
 
 
 
-var cubeForceLayoutController = require('./controller/cubeForceLayoutController');
+var cubeForceLayoutController = require('./controller/cubeForceLayoutController'),
+    canvasController = require('./controller/canvasController');

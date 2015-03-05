@@ -4,7 +4,7 @@ var _ = require('lodash'),
 
 
 var WIDTH = 700,
-    HEIGHT = 300;
+    HEIGHT = 400;
 
 var force = require('../model/cubeForceLayout')(sculpture, WIDTH, HEIGHT);
 

@@ -16,12 +16,15 @@
     "before": true,
     "after": true,
     "describe": true,
+    "document": true,
     "xdescribe": true,
     "it": true,
     "xit": true,
     "requirejs": true,
+    "requestAnimationFrame": true,
     "window": true,
     "console": true,
-    "WebSocket": true
+    "WebSocket": true,
+    "Image": true
   }
 }
