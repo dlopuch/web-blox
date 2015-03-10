@@ -20,27 +20,7 @@ var ringImg = new Image();
 ringImg.src = '/ring.png';
 ringImg.onload = function() {
 
-  // create offscreen buffer,
-  var buffer = document.createElement('canvas');
-  //d3.select("body")[0][0].appendChild(buffer);
-
-  buffer.width = ringImg.width;
-  buffer.height = ringImg.height;
-  var bx = buffer.getContext('2d');
-
-  function colorizeRingBuffer(rgb) {
-    // fill offscreen buffer with the tint color
-    bx.globalCompositeOperation = 'normal';
-    bx.fillStyle = rgb || '#FF0000';
-    bx.fillRect(0,0,buffer.width,buffer.height);
-
-    bx.globalCompositeOperation = 'multiply';
-    bx.drawImage(ringImg, 0, 0);
-  }
-
-
-
-  function drawRing( rgb, x, y, mx, my) {
+  function drawRing(coloredRingBuffer, x, y, mx, my) {
     if (!mx)
       mx = 100;
     if (!my)
@@ -48,9 +28,8 @@ ringImg.onload = function() {
 
     ctx.save();
 
-    colorizeRingBuffer(rgb);
     ctx.globalCompositeOperation = 'screen';
-    ctx.drawImage(buffer, x, y, mx, my);
+    ctx.drawImage(coloredRingBuffer, x, y, mx, my);
 
     // ctx.globalCompositeOperation = 'overlay';
     // ctx.fillStyle = rgb || '#F00';
@@ -63,11 +42,26 @@ ringImg.onload = function() {
   function Ring(color, x, y, maxM, minM, p) {
     maxM = maxM || 900;
     minM = minM || 100;
+
+    // Each Ring holds its own color-shaded ringImg as a separate canvas buffer so that color blending onto main canvas
+    // can include the ring's coloring
+    var buffer = this.buffer = document.createElement('canvas');
+    //d3.select("body")[0][0].appendChild(buffer);
+    buffer.width = ringImg.width;
+    buffer.height = ringImg.height;
+    var bx = buffer.getContext('2d');
+    bx.globalCompositeOperation = 'normal';
+    bx.fillStyle = color || '#FF0000';
+    bx.fillRect(0,0, buffer.width, buffer.height);
+    bx.globalCompositeOperation = 'multiply';
+    bx.drawImage(ringImg, 0, 0);
+
     this.t = 0;
-    var m;
+    var multiplier;
     this.tick = function() {
-      m = minM + (Math.sin(this.t) / 2 + 0.5) * (maxM - minM);
-      drawRing(color, x, y, m, m);
+      // scale multiplier to minM + sin wave between 0 and 1
+      multiplier = minM + (Math.sin(this.t) / 2 + 0.5) * (maxM - minM);
+      drawRing(buffer, x, y, multiplier, multiplier);
       this.t += p || 0.1;
     }.bind(this);
   }
